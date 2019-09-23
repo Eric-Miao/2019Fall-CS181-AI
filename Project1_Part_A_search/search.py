@@ -87,7 +87,50 @@ def depthFirstSearch(problem):
     print "Start's successors:", problem.getSuccessors(problem.getStartState())
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    from game import Directions
+    if problem.isGoalState(problem.getStartState()): return Directions.STOP
+    # if the start state is the goal state, return.
+
+    path = []  # for the result to be returned, which stores the list of actions to get to the goal
+    closed = []  # for the nodes visited
+    fringe = util.Stack()  # for the nodes on the fringe to be visited and use stack to implement LIFO
+    curState = problem.getStartState  # to mark a temporary state.
+    parent_map = {}  # a map to find the way back to start point, child key parent value
+
+    def path_finding(goal):  # path finding using the parent map to give out a ret path
+        curState = goal
+        ret = []
+        while not curState == problem.getStartState():
+            ret.append(parent_map[curState][1])
+            curState = parent_map[curState][0]
+        return ret
+
+    fringe.push(curState)
+    while not fringe.isEmpty():
+        curState = fringe.pop()
+        closed.append(curState)
+        successors = problem.getSuccessors(curState)
+
+        for i in range(len(successors)):
+            # check for no double visit
+            visit_flag = 0  # a flag to indicate if a new state has been visited.
+            for state in closed:
+                if state == successors[i]:
+                    visit_flag = 1
+            # delete the visited ones and index--
+            if visit_flag == 1:
+                del(successors[i])
+                i-=1
+            else:
+                # if current successor is the goal state, return
+                if problem.isGoalState(successors[i]):
+                    path = path_finding(successors[i])
+                    return path
+                # if the successor is not goal nor visited nodes, add to fringe
+                fringe.push(successors[i])
+                parent_map[successors[i]] = (curState, successors[i][1])
+
+    "util.raiseNotDefined()"
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
