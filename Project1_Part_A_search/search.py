@@ -85,7 +85,7 @@ def depthFirstSearch(problem):
     print "Start:", problem.getStartState()
     print "Is the start a goal?", problem.isGoalState(problem.getStartState())
     print "Start's successors:", problem.getSuccessors(problem.getStartState())
-    """
+"""
     "*** YOUR CODE HERE ***"
     from game import Directions
     if problem.isGoalState(problem.getStartState()): return Directions.STOP
@@ -94,8 +94,9 @@ def depthFirstSearch(problem):
     path = []  # for the result to be returned, which stores the list of actions to get to the goal
     closed = []  # for the nodes visited
     fringe = util.Stack()  # for the nodes on the fringe to be visited and use stack to implement LIFO
-    curState = problem.getStartState  # to mark a temporary state.
+    curState = problem.getStartState()  # to mark a temporary state.
     parent_map = {}  # a map to find the way back to start point, child key parent value
+    successors = []
 
     def path_finding(goal):  # path finding using the parent map to give out a ret path
         curState = goal
@@ -111,25 +112,45 @@ def depthFirstSearch(problem):
         closed.append(curState)
         successors = problem.getSuccessors(curState)
 
-        for i in range(len(successors)):
+        for succ in successors:
             # check for no double visit
             visit_flag = 0  # a flag to indicate if a new state has been visited.
             for state in closed:
-                if state == successors[i]:
+                if state == succ[0]:
                     visit_flag = 1
-            # delete the visited ones and index--
+            # if visited, do nothing and continue the loop
             if visit_flag == 1:
-                del(successors[i])
-                i-=1
+                continue
             else:
                 # if current successor is the goal state, return
-                if problem.isGoalState(successors[i]):
-                    path = path_finding(successors[i])
+                if problem.isGoalState(succ[0]):
+                    parent_map[succ[0]] = (curState, succ[1])
+                    path = path_finding(succ[0])
+                    path.reverse()
                     return path
                 # if the successor is not goal nor visited nodes, add to fringe
-                fringe.push(successors[i])
-                parent_map[successors[i]] = (curState, successors[i][1])
-
+                fringe.push(succ[0])
+                parent_map[succ[0]] = (curState, succ[1])
+    '''
+            for i in range(len(successors)):
+                # check for no double visit
+                visit_flag = 0  # a flag to indicate if a new state has been visited.
+                for state in closed:
+                    if state == successors[i][0]:
+                        visit_flag = 1
+                # delete the visited ones and index--
+                if visit_flag == 1:
+                    del(successors[i])
+                    i-=1
+                else:
+                    # if current successor is the goal state, return
+                    if problem.isGoalState(successors[i][0]):
+                        path = path_finding(successors[i][0])
+                        return path.reverse()
+                    # if the successor is not goal nor visited nodes, add to fringe
+                    fringe.push(successors[i][0])
+                    parent_map[successors[i][0]] = (curState, successors[i][1])
+    '''
     "util.raiseNotDefined()"
 
 def breadthFirstSearch(problem):
