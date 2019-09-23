@@ -96,7 +96,6 @@ def depthFirstSearch(problem):
     fringe = util.Stack()  # for the nodes on the fringe to be visited and use stack to implement LIFO
     curState = problem.getStartState()  # to mark a temporary state.
     parent_map = {}  # a map to find the way back to start point, child key parent value
-    successors = []
 
     def path_finding(goal):  # path finding using the parent map to give out a ret path
         curState = goal
@@ -110,6 +109,12 @@ def depthFirstSearch(problem):
     while not fringe.isEmpty():
         curState = fringe.pop()
         closed.append(curState)
+        # if current successor is the goal state, return
+        if problem.isGoalState(curState):
+            path = path_finding(curState)
+            path.reverse()
+            return path
+
         successors = problem.getSuccessors(curState)
 
         for succ in successors:
@@ -122,12 +127,6 @@ def depthFirstSearch(problem):
             if visit_flag == 1:
                 continue
             else:
-                # if current successor is the goal state, return
-                if problem.isGoalState(succ[0]):
-                    parent_map[succ[0]] = (curState, succ[1])
-                    path = path_finding(succ[0])
-                    path.reverse()
-                    return path
                 # if the successor is not goal nor visited nodes, add to fringe
                 fringe.push(succ[0])
                 parent_map[succ[0]] = (curState, succ[1])
@@ -150,13 +149,52 @@ def depthFirstSearch(problem):
                     # if the successor is not goal nor visited nodes, add to fringe
                     fringe.push(successors[i][0])
                     parent_map[successors[i][0]] = (curState, successors[i][1])
-    '''
-    "util.raiseNotDefined()"
 
+    "util.raiseNotDefined()"
+    '''
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    from game import Directions
+    if problem.isGoalState(problem.getStartState()): return Directions.STOP
+    # if the start state is the goal state, return.
+
+    path = []  # for the result to be returned, which stores the list of actions to get to the goal
+    closed = []  # for the nodes visited
+    fringe = util.Queue()  # for the nodes on the fringe to be visited and use queue to implement LIFO
+    curState = problem.getStartState()  # to mark a temporary state.
+    parent_map = {}  # a map to find the way back to start point, child key parent value
+
+    def path_finding(goal):  # path finding using the parent map to give out a ret path
+        curState = goal
+        ret = []
+        while not curState == problem.getStartState():
+            ret.append(parent_map[curState][1])
+            curState = parent_map[curState][0]
+        return ret
+
+    fringe.push(curState)
+    closed.append(curState)
+    while not fringe.isEmpty():
+        curState = fringe.pop()
+        # if current successor is the goal state, return
+        if problem.isGoalState(curState):
+            path = path_finding(curState)
+            path.reverse()
+            return path
+
+        successors = problem.getSuccessors(curState)
+        for succ in successors:
+            # check for no double visit
+            visit_flag = 0  # a flag to indicate if a new state has been visited.
+            for state in closed:
+                if state == succ[0]:
+                    visit_flag=1
+            if(visit_flag==0):
+                closed.append(succ[0])
+                fringe.push(succ[0])
+                parent_map[succ[0]] = (curState, succ[1])
+    # util.raiseNotDefined()
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
