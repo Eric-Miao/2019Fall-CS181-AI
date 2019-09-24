@@ -199,7 +199,48 @@ def breadthFirstSearch(problem):
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    path = []  # for the result to be returned, which stores the list of actions to get to the goal
+    closed = []  # for the nodes visited
+    fringe = util.PriorityQueue()  # for the nodes on the fringe to be visited and use queue to implement LIFO
+    curState = problem.getStartState()  # to mark a temporary state.
+    parent_map = {}  # a map to find the way back to start point, child key parent value
+
+    def path_finding(goal):  # path finding using the parent map to give out a ret path
+        curState = goal
+        ret = []
+        while not curState == problem.getStartState():
+            ret.append(parent_map[curState][1])
+            curState = parent_map[curState][0]
+        return ret
+
+    fringe.push(curState, 0)
+    closed.append(curState)
+    while not fringe.isEmpty():
+
+        curState = fringe.pop()
+
+        # if current successor is the goal state, return
+        if problem.isGoalState(curState):
+            path = path_finding(curState)
+            path.reverse()
+            return path
+
+        successors = problem.getSuccessors(curState)
+        for succ in successors:
+            # check for no double visit
+            visit_flag = 0  # a flag to indicate if a new state has been visited.
+            for state in closed:
+                if state == succ[0]:
+                    visit_flag=1
+            if(visit_flag==0):
+                closed.append(succ[0])
+                # before new node pushed into priorityqueue, compute the priority function
+                # option1: like path finding, everytime calculate
+                # option2: store the cost of every node.
+                fringe.push(succ[0], succ[2])
+                parent_map[succ[0]] = (curState, succ[1])
+
+    #util.raiseNotDefined()
 
 def nullHeuristic(state, problem=None):
     """
