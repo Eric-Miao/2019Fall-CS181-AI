@@ -19,6 +19,7 @@ Pacman agents (in searchAgents.py).
 
 import util
 
+
 class SearchProblem:
     """
     This class outlines the structure of a search problem, but doesn't implement
@@ -70,7 +71,8 @@ def tinyMazeSearch(problem):
     from game import Directions
     s = Directions.SOUTH
     w = Directions.WEST
-    return  [s, s, w, s, w, w, s, w]
+    return [s, s, w, s, w, w, s, w]
+
 
 def depthFirstSearch(problem):
     """
@@ -152,6 +154,8 @@ def depthFirstSearch(problem):
 
     "util.raiseNotDefined()"
     '''
+
+
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
@@ -189,12 +193,13 @@ def breadthFirstSearch(problem):
             visit_flag = 0  # a flag to indicate if a new state has been visited.
             for state in closed:
                 if state == succ[0]:
-                    visit_flag=1
-            if(visit_flag==0):
+                    visit_flag = 1
+            if (visit_flag == 0):
                 closed.append(succ[0])
                 fringe.push(succ[0])
                 parent_map[succ[0]] = (curState, succ[1])
     # util.raiseNotDefined()
+
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
@@ -203,7 +208,10 @@ def uniformCostSearch(problem):
     closed = []  # for the nodes visited
     fringe = util.PriorityQueue()  # for the nodes on the fringe to be visited and use queue to implement LIFO
     curState = problem.getStartState()  # to mark a temporary state.
-    parent_map = {}  # a map to find the way back to start point, child key parent value
+    parent_map = {}
+
+    # a map to find the way back to start point, child key parent value.
+    # {"child node":(father node, action, priority)}
 
     def path_finding(goal):  # path finding using the parent map to give out a ret path
         curState = goal
@@ -213,10 +221,10 @@ def uniformCostSearch(problem):
             curState = parent_map[curState][0]
         return ret
 
+    # fringe is now a priority queue, accept a priority parameter
+    # the start node has a priority of 0
     fringe.push(curState, 0)
-    closed.append(curState)
     while not fringe.isEmpty():
-
         curState = fringe.pop()
 
         # if current successor is the goal state, return
@@ -225,22 +233,46 @@ def uniformCostSearch(problem):
             path.reverse()
             return path
 
+        # check if poped a visited node, if not add to visited
+        visit_flag = 0
+        for state in closed:
+            if state == curState:
+                visit_flag = 1
+        if visit_flag == 1:
+            continue
+        else:
+            closed.append(curState)
+
+        # start to explore neighbor.
         successors = problem.getSuccessors(curState)
         for succ in successors:
             # check for no double visit
             visit_flag = 0  # a flag to indicate if a new state has been visited.
             for state in closed:
                 if state == succ[0]:
-                    visit_flag=1
-            if(visit_flag==0):
-                closed.append(succ[0])
-                # before new node pushed into priorityqueue, compute the priority function
-                # option1: like path finding, everytime calculate
-                # option2: store the cost of every node.
-                fringe.push(succ[0], succ[2])
-                parent_map[succ[0]] = (curState, succ[1])
+                    visit_flag = 1
+            if visit_flag == 0:
+                if curState == problem.getStartState():
+                    priority = 0 + succ[2]
+                else:
+                    priority = parent_map[curState][2] + succ[2]
+                fringe.push(succ[0], priority)
 
-    #util.raiseNotDefined()
+                if (not parent_map.has_key(succ[0])):
+                    # before new node pushed into pqueue, compute the priority function
+                    # option1: like path finding, everytime calculate
+                    # option2: store the cost of every node.
+                    # accept option2, add one parameter in the parent_map dict
+                    parent_map[succ[0]] = (curState, succ[1], priority)
+                else:
+                    # if find a closer path of a node, update the parent path.
+                    if (succ[0] != problem.getStartState()):
+                        priority = parent_map[curState][2] + succ[2]
+                        pre_cost = parent_map[succ[0]][2]
+                        if priority < pre_cost:
+                            parent_map[succ[0]] = (curState, succ[1], priority)
+    # util.raiseNotDefined()
+
 
 def nullHeuristic(state, problem=None):
     """
@@ -249,10 +281,82 @@ def nullHeuristic(state, problem=None):
     """
     return 0
 
+
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+
+    path = []  # for the result to be returned, which stores the list of actions to get to the goal
+    closed = []  # for the nodes visited
+    fringe = util.PriorityQueue()  # for the nodes on the fringe to be visited and use queue to implement LIFO
+    curState = problem.getStartState()  # to mark a temporary state.
+    parent_map = {}
+    fv = 0
+    gv = 0
+
+    # a map to find the way back to start point, child key parent value.
+    # {"child node":(father node, action, priority)}
+
+    def path_finding(goal):  # path finding using the parent map to give out a ret path
+        curState = goal
+        ret = []
+        while not curState == problem.getStartState():
+            ret.append(parent_map[curState][1])
+            curState = parent_map[curState][0]
+        return ret
+
+    # fringe is now a priority queue, accept a priority parameter
+    # the start node has a priority of 0
+    fv = gv + heuristic(curState, problem)
+    fringe.push(curState, fv)
+    while not fringe.isEmpty():
+        curState = fringe.pop()
+
+        # if current successor is the goal state, return
+        if problem.isGoalState(curState):
+            path = path_finding(curState)
+            path.reverse()
+            return path
+
+        # check if poped a visited node, if not add to visited
+        visit_flag = 0
+        for state in closed:
+            if state == curState:
+                visit_flag = 1
+        if visit_flag == 1:
+            continue
+        else:
+            closed.append(curState)
+
+        # start to explore neighbor.
+        successors = problem.getSuccessors(curState)
+        for succ in successors:
+            # check for no double visit
+            visit_flag = 0  # a flag to indicate if a new state has been visited.
+            for state in closed:
+                if state == succ[0]:
+                    visit_flag = 1
+                    break
+            if visit_flag == 0:
+                if curState == problem.getStartState():
+                    gv = 0 + succ[2]
+                else:
+                    gv = parent_map[curState][2] + succ[2]
+                fv = gv + heuristic(succ[0], problem)
+                fringe.push(succ[0], fv)
+
+                if not parent_map.has_key(succ[0]):
+                    # a node never explored before
+                    parent_map[succ[0]] = (curState, succ[1], gv, fv)
+                elif succ[0] != problem.getStartState():
+                    # if find a closer path of a pre-explored node, update the parent path.
+                    gv = parent_map[curState][2] + succ[2]
+                    fv = gv + heuristic(succ[0], problem)
+                    pre_fv = parent_map[succ[0]][3]
+                    if fv < pre_fv:
+                        parent_map[succ[0]] = (curState, succ[1], gv, fv)
+
+# util.raiseNotDefined()
 
 
 # Abbreviations
