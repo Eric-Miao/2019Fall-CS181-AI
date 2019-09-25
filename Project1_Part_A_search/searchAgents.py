@@ -288,13 +288,10 @@ class CornersProblem(search.SearchProblem):
         # Please add any code here which you would like to use
         # in initializing the problem
         "*** YOUR CODE HERE ***"
-        self.cornerdict = {}
-        for corner in self.corners:
-            self.cornerdict[corner] = False
-        # check if all visited
-        self.cornerdict["count"] = 0
-
-
+        self.bl = False
+        self.br = False
+        self.tr = False
+        self.tl = False
     def getStartState(self):
         """
         Returns the start state (in your state space, not the full Pacman state
@@ -309,12 +306,8 @@ class CornersProblem(search.SearchProblem):
         Returns whether this search state is a goal state of the problem.
         """
         "*** YOUR CODE HERE ***"
-        cornerdict=self.cornerdict
-        if cornerdict.has_key(state):
-            if cornerdict[state] == False:
-                cornerdict[state] = True
-                cornerdict["count"] += 1
-            if cornerdict["count"] == 4:
+        if state != self.startingPosition:
+            if state[1][0] == True and state[1][1] == True and state[1][2] == True and state[1][3] == True:
                 return True
         return False
         # util.raiseNotDefined()
@@ -340,14 +333,35 @@ class CornersProblem(search.SearchProblem):
             #   hitsWall = self.walls[nextx][nexty]
 
             "*** YOUR CODE HERE ***"
-            x, y = state
+            corner0 = False
+            corner1 = False
+            corner2 = False
+            corner3 = False
+            if state == self.startingPosition:
+                x, y = state
+            else:
+                x, y = state[0]
             dx, dy = Actions.directionToVector(action)
             nextx, nexty = int(x + dx), int(y + dy)
             if not self.walls[nextx][nexty]:
-                nextState = (nextx, nexty)
+                if state != self.startingPosition:
+                    corner0 = state[1][0]
+                    corner1 = state[1][1]
+                    corner2 = state[1][2]
+                    corner3 = state[1][3]
+                if (nextx, nexty) == self.corners[0]:
+                    corner0 = True
+                if (nextx, nexty) == self.corners[1]:
+                    corner1 = True
+                if (nextx, nexty) == self.corners[2]:
+                    corner2 = True
+                if (nextx, nexty) == self.corners[3]:
+                    corner3 = True
+
+                corner_condition = (corner0, corner1, corner2, corner3)
+                nextState = ((nextx, nexty), corner_condition)
                 cost = 1
                 successors.append((nextState, action, cost))
-
             # Bookkeeping for display purposes
         self._expanded += 1  # DO NOT CHANGE
         return successors
