@@ -288,6 +288,11 @@ class CornersProblem(search.SearchProblem):
         # Please add any code here which you would like to use
         # in initializing the problem
         "*** YOUR CODE HERE ***"
+        self.cornerdict = {}
+        for corner in self.corners:
+            self.cornerdict[corner] = False
+        # check if all visited
+        self.cornerdict["count"] = 0
 
 
     def getStartState(self):
@@ -304,15 +309,10 @@ class CornersProblem(search.SearchProblem):
         Returns whether this search state is a goal state of the problem.
         """
         "*** YOUR CODE HERE ***"
-        cornerdict={}
-        for corner in self.corners:
-            cornerdict[corner] = 0
-        # check if all visited
-        cornerdict["count"] = 0
-        # check if is corner
+        cornerdict=self.cornerdict
         if cornerdict.has_key(state):
-            if cornerdict[state] == 0:
-                cornerdict[state] = 1
+            if cornerdict[state] == False:
+                cornerdict[state] = True
                 cornerdict["count"] += 1
             if cornerdict["count"] == 4:
                 return True
@@ -340,8 +340,16 @@ class CornersProblem(search.SearchProblem):
             #   hitsWall = self.walls[nextx][nexty]
 
             "*** YOUR CODE HERE ***"
+            x, y = state
+            dx, dy = Actions.directionToVector(action)
+            nextx, nexty = int(x + dx), int(y + dy)
+            if not self.walls[nextx][nexty]:
+                nextState = (nextx, nexty)
+                cost = 1
+                successors.append((nextState, action, cost))
 
-        self._expanded += 1 # DO NOT CHANGE
+            # Bookkeeping for display purposes
+        self._expanded += 1  # DO NOT CHANGE
         return successors
 
     def getCostOfActions(self, actions):
