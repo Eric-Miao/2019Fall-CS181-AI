@@ -288,6 +288,7 @@ class CornersProblem(search.SearchProblem):
         # Please add any code here which you would like to use
         # in initializing the problem
         "*** YOUR CODE HERE ***"
+        self.nearestcorner = self.corners[0]
     def getStartState(self):
         """
         Returns the start state (in your state space, not the full Pacman state
@@ -399,9 +400,28 @@ def cornersHeuristic(state, problem):
     def euclideandist(state1, state2):
         return ((state1[0] - state2[0]) ** 2 + (state1[1] - state2[1]) ** 2) ** 0.5
     dist = 0
+    max_dist = 0
 
     if state == problem.startingPosition:
+        for i in range(len(corners)):
+            dist = manhattandist(state, corners[i])
+            if dist > max_dist:
+                max_dist = dist
+    else:
+        for i in range(len(corners)):
+            if not state[1][i]:
+                dist = manhattandist(state[0],corners[i])
+                if dist > max_dist:
+                    max_dist = dist
+    # calculate the distance to the closed unvisited corner. and the return value (h) is the ** value.
+    print(max_dist)
+    return max_dist # Default to trivial solution
+
+
+'''
+    if state == problem.startingPosition:
         dist = manhattandist(state, corners[0])
+        return dist
     else:
         for i in range(len(corners)):
             if not state[1][i]:
@@ -409,22 +429,9 @@ def cornersHeuristic(state, problem):
                 break
     return dist
 
+
 ''' 
-    if state == problem.startingPosition:
-        for i in range(len(corners)):
-            dist = manhattandist(state, corners[i])
-            if dist < min_dist:
-                min_dist = dist
-    else:
-        for i in range(len(corners)):
-            if not state[1][i]:
-                dist = manhattandist(state[0],corners[i])
-                if dist < min_dist:
-                    min_dist = dist
-    # calculate the distance to the closed unvisited corner. and the return value (h) is the ** value.
-    print(min_dist)
-    return min_dist # Default to trivial solution
-'''
+
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
