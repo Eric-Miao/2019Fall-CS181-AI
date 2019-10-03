@@ -238,43 +238,63 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         self.curdepth = 0
         curdepth = 1
         curagent = 0
-
+        bestScore = -99999
+        alpha = -99999
+        beta = 99999
+        scores = []
         # Collect legal moves
         legalMoves = gameState.getLegalActions(curagent)
-        score = []
         legalSucc = [gameState.generateSuccessor(curagent, action) for action in legalMoves]
         # Choose one of the best successors
-        scores = [self.value(gameState, curagent, curdepth) for gameState in legalSucc]
-
-        bestScore = max(scores)
+        for gameState in legalSucc:
+            newScore = self.value(gameState, curagent, curdepth, alpha, beta)
+            scores.append(newScore)
+            bestScore = max(bestScore, newScore)
+            if bestScore > beta:
+                print("root prune triggered")
+                break
+            alpha = max(alpha, bestScore)
         bestIndices = [index for index in range(len(scores)) if scores[index] == bestScore]
         chosenIndex = random.choice(bestIndices)  # Pick randomly among the best
 
         return legalMoves[chosenIndex]
 
     # value function && min function && max function, written from the ppt psuedo code
-    def maxvalue(self, gameState, curagent, curdepth):
+    def maxvalue(self, gameState, curagent, curdepth, alpha, beta):
+        # initialize
+        bestScore = -99999
+
         # Collect legal moves
         legalMoves = gameState.getLegalActions(curagent)
-
         legalSucc = [gameState.generateSuccessor(curagent, action) for action in legalMoves]
         # Choose one of the best successors
-        scores = [self.value(gameState, curagent, curdepth) for gameState in legalSucc]
-        bestScore = max(scores)
-
+        for gameState in legalSucc:
+            newScore = self.value(gameState, curagent, curdepth, alpha, beta)
+            bestScore = max(bestScore, newScore)
+            if bestScore > beta:
+                print("max prune triggered")
+                return bestScore
+            alpha = max(alpha, bestScore)
         return bestScore
 
-    def minvalue(self, gameState, curagent, curdepth):
+    def minvalue(self, gameState, curagent, curdepth, alpha, beta):
+        # initialize
+        worstScore = -99999
+
         # Collect legal moves and successor states
         legalMoves = gameState.getLegalActions(curagent)
         legalSucc = [gameState.generateSuccessor(curagent, action) for action in legalMoves]
         # Choose one of the best successors
-        scores = [self.value(gameState, curagent, curdepth) for gameState in legalSucc]
-        worstScore = min(scores)
-
+        for gameState in legalSucc:
+            newScore = self.value(gameState, curagent, curdepth, alpha, beta)
+            worstScore = min(worstScore, newScore)
+            if worstScore < alpha:
+                print("min prune triggered")
+                return worstScore
+            beta = min(alpha, worstScore)
         return worstScore
 
-    def value(self, gameState, curagent, curdepth):
+    def value(self, gameState, curagent, curdepth, alpha, beta):
         """
         here i came up with two sets of logic
         #1 if curagent == agentnum --> if curdepth == depth
@@ -295,11 +315,11 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             else:
                 curdepth += 1
                 curagent = 0
-                score = self.maxvalue(gameState, curagent, curdepth)
+                score = self.maxvalue(gameState, curagent, curdepth, alpha, beta)
                 return score
         else:
             curagent += 1
-            score = self.minvalue(gameState, curagent, curdepth)
+            score = self.minvalue(gameState, curagent, curdepth, alpha, beta)
             return score
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
