@@ -28,7 +28,6 @@ class ReflexAgent(Agent):
     headers.
     """
 
-
     def getAction(self, gameState):
         """
         You do not need to change this method, but you're welcome to.
@@ -104,6 +103,7 @@ class MultiAgentSearchAgent(Agent):
         self.index = 0 # Pacman is always agent index 0
         self.evaluationFunction = util.lookup(evalFn, globals())
         self.depth = int(depth)
+        self.curdepth = 0
 
 class MinimaxAgent(MultiAgentSearchAgent):
     """
@@ -132,9 +132,77 @@ class MinimaxAgent(MultiAgentSearchAgent):
 
         gameState.isLose():
         Returns whether or not the game state is a losing state
+
+        util.raiseNotDefined()
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        self.curdepth = 0
+        curdepth = 1
+        curagent = 0
+
+        # Collect legal moves
+        legalMoves = gameState.getLegalActions(curagent)
+        score = []
+        legalSucc = [gameState.generateSuccessor(curagent, action) for action in legalMoves]
+        # Choose one of the best successors
+        scores = [self.value(gameState, curagent, curdepth) for gameState in legalSucc]
+
+        bestScore = max(scores)
+        bestIndices = [index for index in range(len(scores)) if scores[index] == bestScore]
+        chosenIndex = random.choice(bestIndices)  # Pick randomly among the best
+
+        return legalMoves[chosenIndex]
+
+    # value function && min function && max function, written from the ppt psuedo code
+    def maxvalue(self, gameState, curagent, curdepth):
+        # Collect legal moves
+        legalMoves = gameState.getLegalActions(curagent)
+
+        legalSucc = [gameState.generateSuccessor(curagent, action) for action in legalMoves]
+        # Choose one of the best successors
+        scores = [self.value(gameState, curagent, curdepth) for gameState in legalSucc]
+        bestScore = max(scores)
+
+        return bestScore
+
+    def minvalue(self, gameState, curagent, curdepth):
+        # Collect legal moves and successor states
+        legalMoves = gameState.getLegalActions(curagent)
+        legalSucc = [gameState.generateSuccessor(curagent, action) for action in legalMoves]
+        # Choose one of the best successors
+        scores = [self.value(gameState, curagent, curdepth) for gameState in legalSucc]
+        worstScore = min(scores)
+
+        return worstScore
+
+    def value(self, gameState, curagent, curdepth):
+        """
+        here i came up with two sets of logic
+        #1 if curagent == agentnum --> if curdepth == depth
+        #1 if curagent == depth --> if curagent == agentnum  --> if curagent == 0
+        """
+
+        # if the successor is an end, then return the value
+        if (gameState.isWin() or gameState.isLose()):
+            score = self.evaluationFunction(gameState)
+            return score
+
+        agentnum = gameState.getNumAgents()
+        temp = agentnum - 1
+        if curagent == temp:
+            if curdepth == self.depth:
+                score = self.evaluationFunction(gameState)
+                return score
+            else:
+                curdepth += 1
+                curagent = 0
+                score = self.maxvalue(gameState, curagent, curdepth)
+                return score
+        else:
+            curagent += 1
+            score = self.minvalue(gameState, curagent, curdepth)
+            return score
+
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
