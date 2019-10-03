@@ -211,28 +211,6 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
 
     def getAction(self, gameState):
         """
-        Returns the minimax action from the current gameState using self.depth
-        and self.evaluationFunction.
-
-        Here are some method calls that might be useful when implementing minimax.
-
-        gameState.getLegalActions(agentIndex):
-        Returns a list of legal actions for an agent
-        agentIndex=0 means Pacman, ghosts are >= 1
-
-        gameState.generateSuccessor(agentIndex, action):
-        Returns the successor game state after an agent takes an action
-
-        gameState.getNumAgents():
-        Returns the total number of agents in the game
-
-        gameState.isWin():
-        Returns whether or not the game state is a winning state
-
-        gameState.isLose():
-        Returns whether or not the game state is a losing state
-
-        util.raiseNotDefined()
         """
         "*** YOUR CODE HERE ***"
         self.curdepth = 0
@@ -250,9 +228,6 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             newScore = self.value(gameState, curagent, curdepth, alpha, beta)
             scores.append(newScore)
             bestScore = max(bestScore, newScore)
-            if bestScore > beta:
-                print("root prune triggered")
-                break
             alpha = max(alpha, bestScore)
         bestIndices = [index for index in range(len(scores)) if scores[index] == bestScore]
         chosenIndex = random.choice(bestIndices)  # Pick randomly among the best
@@ -263,23 +238,22 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
     def maxvalue(self, gameState, curagent, curdepth, alpha, beta):
         # initialize
         bestScore = -99999
-
         # Collect legal moves
         legalMoves = gameState.getLegalActions(curagent)
         legalSucc = [gameState.generateSuccessor(curagent, action) for action in legalMoves]
         # Choose one of the best successors
         for gameState in legalSucc:
             newScore = self.value(gameState, curagent, curdepth, alpha, beta)
-            bestScore = max(bestScore, newScore)
+            if newScore > bestScore:
+                bestScore = newScore
             if bestScore > beta:
-                print("max prune triggered")
                 return bestScore
             alpha = max(alpha, bestScore)
         return bestScore
 
     def minvalue(self, gameState, curagent, curdepth, alpha, beta):
         # initialize
-        worstScore = -99999
+        worstScore = 99999
 
         # Collect legal moves and successor states
         legalMoves = gameState.getLegalActions(curagent)
@@ -287,11 +261,11 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         # Choose one of the best successors
         for gameState in legalSucc:
             newScore = self.value(gameState, curagent, curdepth, alpha, beta)
-            worstScore = min(worstScore, newScore)
+            if newScore < worstScore:
+                worstScore = newScore
             if worstScore < alpha:
-                print("min prune triggered")
                 return worstScore
-            beta = min(alpha, worstScore)
+            beta = min(beta, worstScore)
         return worstScore
 
     def value(self, gameState, curagent, curdepth, alpha, beta):
@@ -326,16 +300,82 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
     """
       Your expectimax agent (question 3)
     """
-
     def getAction(self, gameState):
-        """
-        Returns the expectimax action using self.depth and self.evaluationFunction
+        self.curdepth = 0
+        curdepth = 1
+        curagent = 0
 
-        All ghosts should be modeled as choosing uniformly at random from their
-        legal moves.
+        # Collect legal moves
+        legalMoves = gameState.getLegalActions(curagent)
+        score = []
+        legalSucc = [gameState.generateSuccessor(curagent, action) for action in legalMoves]
+        # Choose one of the best successors
+        scores = [self.value(gameState, curagent, curdepth) for gameState in legalSucc]
+
+        bestScore = max(scores)
+        bestIndices = [index for index in range(len(scores)) if scores[index] == bestScore]
+        chosenIndex = random.choice(bestIndices)  # Pick randomly among the best
+
+        return legalMoves[chosenIndex]
+
+    # value function && min function && max function, written from the ppt psuedo code
+    def maxvalue(self, gameState, curagent, curdepth):
+        # Collect legal moves
+        legalMoves = gameState.getLegalActions(curagent)
+
+        legalSucc = [gameState.generateSuccessor(curagent, action) for action in legalMoves]
+        # Choose one of the best successors
+        scores = [self.value(gameState, curagent, curdepth) for gameState in legalSucc]
+        bestScore = max(scores)
+
+        return bestScore
+
+    def expvalue(self, gameState, curagent, curdepth):
+        # Collect legal moves and successor states
+        legalMoves = gameState.getLegalActions(curagent)
+        legalSucc = [gameState.generateSuccessor(curagent, action) for action in legalMoves]
+        # Choose one of the best successors
+        scores = [self.value(gameState, curagent, curdepth) for gameState in legalSucc]
+        expScore = self.average(scores)
+
+        return expScore
+
+    def value(self, gameState, curagent, curdepth):
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        here i came up with two sets of logic
+        #1 if curagent == agentnum --> if curdepth == depth
+        #1 if curagent == depth --> if curagent == agentnum  --> if curagent == 0
+        """
+
+        # if the successor is an end, then return the value
+        if (gameState.isWin() or gameState.isLose()):
+            score = self.evaluationFunction(gameState)
+            return score
+
+        agentnum = gameState.getNumAgents()
+        temp = agentnum - 1
+        if curagent == temp:
+            if curdepth == self.depth:
+                score = self.evaluationFunction(gameState)
+                return score
+            else:
+                curdepth += 1
+                curagent = 0
+                score = self.maxvalue(gameState, curagent, curdepth)
+                return score
+        else:
+            curagent += 1
+            score = self.expvalue(gameState, curagent, curdepth)
+            return score
+
+    def average(self, scores):
+        cnt = 0
+        sum = 0
+        for score in scores:
+            sum += score
+            cnt += 1
+        ret = sum/cnt
+        return ret
 
 def betterEvaluationFunction(currentGameState):
     """
