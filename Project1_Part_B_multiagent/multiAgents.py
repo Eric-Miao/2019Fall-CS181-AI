@@ -211,10 +211,96 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
 
     def getAction(self, gameState):
         """
-        Returns the minimax action using self.depth and self.evaluationFunction
+        Returns the minimax action from the current gameState using self.depth
+        and self.evaluationFunction.
+
+        Here are some method calls that might be useful when implementing minimax.
+
+        gameState.getLegalActions(agentIndex):
+        Returns a list of legal actions for an agent
+        agentIndex=0 means Pacman, ghosts are >= 1
+
+        gameState.generateSuccessor(agentIndex, action):
+        Returns the successor game state after an agent takes an action
+
+        gameState.getNumAgents():
+        Returns the total number of agents in the game
+
+        gameState.isWin():
+        Returns whether or not the game state is a winning state
+
+        gameState.isLose():
+        Returns whether or not the game state is a losing state
+
+        util.raiseNotDefined()
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        self.curdepth = 0
+        curdepth = 1
+        curagent = 0
+
+        # Collect legal moves
+        legalMoves = gameState.getLegalActions(curagent)
+        score = []
+        legalSucc = [gameState.generateSuccessor(curagent, action) for action in legalMoves]
+        # Choose one of the best successors
+        scores = [self.value(gameState, curagent, curdepth) for gameState in legalSucc]
+
+        bestScore = max(scores)
+        bestIndices = [index for index in range(len(scores)) if scores[index] == bestScore]
+        chosenIndex = random.choice(bestIndices)  # Pick randomly among the best
+
+        return legalMoves[chosenIndex]
+
+    # value function && min function && max function, written from the ppt psuedo code
+    def maxvalue(self, gameState, curagent, curdepth):
+        # Collect legal moves
+        legalMoves = gameState.getLegalActions(curagent)
+
+        legalSucc = [gameState.generateSuccessor(curagent, action) for action in legalMoves]
+        # Choose one of the best successors
+        scores = [self.value(gameState, curagent, curdepth) for gameState in legalSucc]
+        bestScore = max(scores)
+
+        return bestScore
+
+    def minvalue(self, gameState, curagent, curdepth):
+        # Collect legal moves and successor states
+        legalMoves = gameState.getLegalActions(curagent)
+        legalSucc = [gameState.generateSuccessor(curagent, action) for action in legalMoves]
+        # Choose one of the best successors
+        scores = [self.value(gameState, curagent, curdepth) for gameState in legalSucc]
+        worstScore = min(scores)
+
+        return worstScore
+
+    def value(self, gameState, curagent, curdepth):
+        """
+        here i came up with two sets of logic
+        #1 if curagent == agentnum --> if curdepth == depth
+        #1 if curagent == depth --> if curagent == agentnum  --> if curagent == 0
+        """
+
+        # if the successor is an end, then return the value
+        if (gameState.isWin() or gameState.isLose()):
+            score = self.evaluationFunction(gameState)
+            return score
+
+        agentnum = gameState.getNumAgents()
+        temp = agentnum - 1
+        if curagent == temp:
+            if curdepth == self.depth:
+                score = self.evaluationFunction(gameState)
+                return score
+            else:
+                curdepth += 1
+                curagent = 0
+                score = self.maxvalue(gameState, curagent, curdepth)
+                return score
+        else:
+            curagent += 1
+            score = self.minvalue(gameState, curagent, curdepth)
+            return score
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
