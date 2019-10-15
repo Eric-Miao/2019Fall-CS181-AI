@@ -222,10 +222,10 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         scores = []
         # Collect legal moves
         legalMoves = gameState.getLegalActions(curagent)
-        legalSucc = [gameState.generateSuccessor(curagent, action) for action in legalMoves]
         # Choose one of the best successors
-        for gameState in legalSucc:
-            newScore = self.value(gameState, curagent, curdepth, alpha, beta)
+        for action in legalMoves:
+            succ = gameState.generateSuccessor(curagent, action)
+            newScore = self.value(succ, curagent, curdepth, alpha, beta)
             scores.append(newScore)
             bestScore = max(bestScore, newScore)
             alpha = max(alpha, bestScore)
@@ -240,10 +240,10 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         bestScore = -99999
         # Collect legal moves
         legalMoves = gameState.getLegalActions(curagent)
-        legalSucc = [gameState.generateSuccessor(curagent, action) for action in legalMoves]
         # Choose one of the best successors
-        for gameState in legalSucc:
-            newScore = self.value(gameState, curagent, curdepth, alpha, beta)
+        for action in legalMoves:
+            succ = gameState.generateSuccessor(curagent, action)
+            newScore = self.value(succ, curagent, curdepth, alpha, beta)
             if newScore > bestScore:
                 bestScore = newScore
             if bestScore > beta:
@@ -257,10 +257,10 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
 
         # Collect legal moves and successor states
         legalMoves = gameState.getLegalActions(curagent)
-        legalSucc = [gameState.generateSuccessor(curagent, action) for action in legalMoves]
         # Choose one of the best successors
-        for gameState in legalSucc:
-            newScore = self.value(gameState, curagent, curdepth, alpha, beta)
+        for action in legalMoves:
+            succ = gameState.generateSuccessor(curagent, action)
+            newScore = self.value(succ, curagent, curdepth, alpha, beta)
             if newScore < worstScore:
                 worstScore = newScore
             if worstScore < alpha:
@@ -382,10 +382,53 @@ def betterEvaluationFunction(currentGameState):
     Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
     evaluation function (question 4).
 
-    DESCRIPTION: <write something here so we know what you did>
+    DESCRIPTION:
+    There are a couple of factors to consider
+    ( "+" for positive to increase, "-" for negative factors to decrease)
+    1. Current Scores                       +
+    2. Current Food Num                     +
+    3. Current Capsule Num                  +
+    4. Current Capsule Distance             -
+    5. Current Ghost Distance               +
+    6. Current Eatable Ghosts Distance      -
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # holds the return value
+    ret = 0
+
+    ghost_num = currentGameState.getNumAgents() - 1
+    pacman_pos = currentGameState.getPacmanPosition()
+
+    current_score = currentGameState.getScore()
+
+    food_num = currentGameState.getNumFood()
+
+    capsule_pos_list = currentGameState.getCapsules()
+    capsule_dist_list = [manhattanDistance(capsule, pacman_pos) for capsule in capsule_pos_list]
+    capsule_num = len(capsule_pos_list)
+
+    ghosts_pos_list = currentGameState.getGhostPositions()
+    ghost_dist_list = [manhattanDistance(ghost, pacman_pos) for ghost in ghosts_pos_list]
+    ghosts_states = currentGameState.getGhostStates()
+    # ghostState.scaredTimer can indicate if a ghost is eatable if return value > 0
+    ghosts_scared = [ghost.scaredTimer for ghost in ghosts_states]
+
+    # now construct a ghost score, taking ghost position and eatable ghosts into consideration.
+    ghost_score = 0
+    for i in range(ghost_num):
+        temp_score = 0
+        if ghosts_scared[i] > 0:
+            temp_score = - ghost_dist_list[i]
+        if ghosts_scared[i] < 0:
+            temp_score = ghost_dist_list[i]
+        ghost_score += temp_score
+
+    # construct other scores
+    capsule_score = 50 * (5-capsule_num)
+    food_score = 100 - food_num
+
+    ret = 0.7 * current_score + 0.2 * capsule_score + 0.0 * food_score + 0.1 * ghost_score
+    return ret
 
 # Abbreviation
 better = betterEvaluationFunction
