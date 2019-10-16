@@ -165,8 +165,11 @@ def atLeastOne(literals) :
     True
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    expression = literals[0]
+    for i in range(len(literals)-1):
+        expression = logic.disjoin(expression, literals[i+1])
 
+    return expression
 
 def atMostOne(literals) :
     """
@@ -175,9 +178,18 @@ def atMostOne(literals) :
     the expressions in the list is true.
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
-
-
+    expression = (~literals[0]) | (~literals[1])
+    for i in range(len(literals)):
+        j = i + 1
+        while (j<len(literals)):
+            if (j == 1):
+                j += 1
+                continue
+            clause = (~literals[i]) | (~literals[j])
+            expression = logic.conjoin(expression, clause)
+            j += 1
+    
+    return expression
 def exactlyOne(literals) :
     """
     Given a list of logic.Expr literals, return a single logic.Expr instance in 
@@ -185,9 +197,35 @@ def exactlyOne(literals) :
     the expressions in the list is true.
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    n = len(literals)
+    clause_brev = []
+    clauses = []
 
+    for i in range(2**n):
+        bstr = str(bin(i))
+        clause_brev.append(bstr[2:].zfill(n))
 
+    for brev in clause_brev:
+        clause = []
+        if (bin(int(brev,2)).count('1') == 1):
+            continue
+        for i in range(n):
+            if (brev[i] == '1'):
+                clause.append(~literals[i])
+            elif (brev[i] == '0'):
+                clause.append(literals[i])
+        
+        temp=clause[0]
+        for i in range(n-1):
+            temp = logic.disjoin(temp,clause[i+1])
+        clauses.append(temp)
+
+    expression = clauses[0]
+    for i in range(2**n-n-1):
+        expression = logic.conjoin(expression,clauses[i+1])
+    
+    return expression
+    
 def extractActionSequence(model, actions):
     """
     Convert a model in to an ordered list of actions.
