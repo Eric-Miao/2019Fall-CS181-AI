@@ -74,7 +74,17 @@ def sentence1():
     (not A) or (not B) or C
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    A = logic.Expr('A')
+    B = logic.Expr('B')
+    C = logic.Expr('C')
+
+    clause_one = A | B
+    clause_two = ~A % (~B | C)
+    clause_three = logic.disjoin ((~A), (~B), C)
+
+    instance = logic.conjoin(clause_one, clause_two, clause_three)
+
+    return instance
 
 def sentence2():
     """Returns a logic.Expr instance that encodes that the following expressions are all true.
@@ -85,7 +95,19 @@ def sentence2():
     (not D) implies C
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    A = logic.Expr('A')
+    B = logic.Expr('B')
+    C = logic.Expr('C')
+    D = logic.Expr('D')
+
+    clause_one = C % (B | D)
+    clause_two = A >> (~B & ~D)
+    clause_three = (~(B & ~C)) >> A
+    clause_four = ~D >> C
+
+    instance = logic.conjoin(clause_one, clause_two, clause_three, clause_four)
+
+    return instance
 
 def sentence3():
     """Using the symbols WumpusAlive[1], WumpusAlive[0], WumpusBorn[0], and WumpusKilled[0],
@@ -100,14 +122,28 @@ def sentence3():
     The Wumpus is born at time 0.
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    WumpusAlive_1 = logic.PropSymbolExpr("WumpusAlive", 1)
+    WumpusAlive_0 = logic.PropSymbolExpr("WumpusAlive", 0)
+    WumpusBorn_0 = logic.PropSymbolExpr("WumpusBorn", 0)
+    WumpusKilled_0 = logic.PropSymbolExpr("WumpusKilled", 0)
+
+    clause_one = WumpusAlive_1 % ((WumpusAlive_0 & (~WumpusKilled_0)) | \
+                ((~WumpusAlive_0) & WumpusBorn_0) )
+    clause_two = ~(WumpusAlive_0 & WumpusBorn_0)
+    clause_three = WumpusBorn_0
+
+    instance = logic.conjoin(clause_one, clause_two, clause_three)
+
+    return instance
 
 def findModel(sentence):
     """Given a propositional logic sentence (i.e. a logic.Expr instance), returns a satisfying
     model if one exists. Otherwise, returns False.
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    cnf = logic.to_cnf(sentence)
+    model = logic.pycoSAT(cnf)
+    return model
 
 def atLeastOne(literals) :
     """
