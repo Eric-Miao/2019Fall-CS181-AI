@@ -239,7 +239,21 @@ def extractActionSequence(model, actions):
     ['West', 'South', 'North']
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    ret = []
+    path = []
+    for key, value in model.items():
+        if (value):
+            temp = key.parseExpr(key)
+            action = temp[0]
+            time = temp[1]
+            if action in actions:
+                elem = (int(time), action)
+                ret.append(elem)
+    ret.sort(key = lambda x:x[0])
+    for elem in ret:
+        path.append(elem[1])
+
+    return path
 
 
 def pacmanSuccessorStateAxioms(x, y, t, walls_grid):
