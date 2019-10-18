@@ -260,10 +260,44 @@ def pacmanSuccessorStateAxioms(x, y, t, walls_grid):
     """
     Successor state axiom for state (x,y,t) (from t-1), given the board (as a 
     grid representing the wall locations).
-    Current <==> (previous position at time t-1) & (took action to move to x, y)
+    Current <==> (previous cposition at time t-1) & (took action to move to x, y)
     """
     "*** YOUR CODE HERE ***"
-    return logic.Expr('A') # Replace this with your expression
+    P_cur = logic.PropSymbolExpr(pacman_str, x, y, t)
+    literals = []
+
+    P_prev_north = logic.PropSymbolExpr(pacman_str, x, y+1, t-1)
+    move_south = logic.PropSymbolExpr("South", t-1)
+    is_wall_north = walls_grid[x][y+1]
+    if(is_wall_north == False):
+        clause_one = P_prev_north & move_south
+        literals.append(clause_one)
+
+    P_prev_south = logic.PropSymbolExpr(pacman_str, x, y-1, t-1)
+    move_north = logic.PropSymbolExpr("North", t-1)
+    is_wall_south = walls_grid[x][y-1]
+    if(is_wall_south == False):
+        clause_two = P_prev_south & move_north
+        literals.append(clause_two)
+
+    P_prev_east = logic.PropSymbolExpr(pacman_str, x+1, y, t-1)
+    move_west = logic.PropSymbolExpr("West", t-1)
+    is_wall_east = walls_grid[x+1][y]
+    if(is_wall_east == False):
+        clause_three = P_prev_east & move_west
+        literals.append(clause_three)
+
+    P_prev_west = logic.PropSymbolExpr(pacman_str, x-1, y, t-1)
+    move_east = logic.PropSymbolExpr("East", t-1)
+    is_wall_west = walls_grid[x-1][y]
+    if(is_wall_west == False):   
+        clause_four = P_prev_west & move_east
+        literals.append(clause_four)
+
+    if (len(literals)>0):
+        expression = P_cur % atLeastOne(literals)
+        return expression
+    return True # Replace this with your expression
 
 
 def positionLogicPlan(problem):
