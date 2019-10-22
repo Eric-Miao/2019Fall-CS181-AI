@@ -350,8 +350,9 @@ def positionLogicPlan(problem):
         visited.append((x, y))
 
         if (x == goal[0] and  y == goal[1]):
-            model = findModel(state[0])
-            break
+           sentence = state[0]
+           break
+
         else :
             # explore east successor
             if not walls[x+1][y] and check_boundray(x+1, y):
@@ -384,6 +385,25 @@ def positionLogicPlan(problem):
                     (logic.PropSymbolExpr(pacman_str, x, y, t) &\
                      logic.PropSymbolExpr('South', t)))
                 states.append([cur_path, x, y-1, t+1])
+    
+    expression = []
+    for t in range(state[3]+1):
+        for x in range(width):
+            y = 1
+            temp1 = logic.PropSymbolExpr(pacman_str, x+1, y, t)
+            for y in range(height):
+                if (y == 0):
+                    continue
+                temp2 = logic.PropSymbolExpr(pacman_str, x+1, y+1, t)
+                clause = ~(temp1 & temp2)
+                expression.append(clause)
+    constrain = expression[0]
+    for i in range(len(expression)-1):
+        constrain = logic.conjoin(constrain,expression[i+1])
+
+    sentence = sentence & constrain
+    model = findModel(sentence)
+
     return extractActionSequence(model, actions)
 
 
@@ -399,81 +419,112 @@ def foodLogicPlan(problem):
             return True
         return False
 
+    def check_goal(sentence):
+        t = sentence[3]
+        all_food=[]
+        for food in food_position:
+            food_all_time = []
+            for i in range(t+1):
+                temp = logic.PropSymbolExpr(pacman_str, food[0], food[1], i)
+                food_all_time.append(temp)
+            temp = exactlyOne(food_all_time)
+            all_food.append(temp)
+
+        temp_ret = sentence[0]
+        for food in all_food:
+            temp_ret = logic.conjoin(temp_ret, food)
+
+            expression = []
+
+        for time in range(t+1):
+            for x in range(width):
+                y = 1
+                temp1 = logic.PropSymbolExpr(pacman_str, x+1, y, time)
+                for y in range(height):
+                    if (y == 0):
+                        continue
+                    temp2 = logic.PropSymbolExpr(pacman_str, x+1, y+1, time)
+                    clause = ~(temp1 & temp2)
+                    expression.append(clause)
+        constrain = expression[0]
+        for i in range(len(expression)-1):
+            constrain = logic.conjoin(constrain,expression[i+1])
+
+        print(constrain)
+
+        temp_ret = temp_ret & constrain
+        model = findModel(temp_ret)
+
+        if model:
+            return model
+        else:
+            return False
+        
+
+
     walls = problem.walls
     width, height = problem.getWidth(), problem.getHeight()
     start = problem.start[0]
     foods = problem.start[1]
-    food_num = 0
-    for col in foods:
-        for food in col:
-            if food:
-                food_num += 1
+    food_position = []
+    cols = list(enumerate(foods))
+    for col in cols:
+        items = list(enumerate(col[1]))
+        for item in items:
+            if item[1] == True:
+                food_position.append((col[0],item[0]))
 
     cur_path = []
-    visited = []
     actions = ['East', 'West', 'North', 'South']
     x = start[0]
     y = start[1]
     t = 0
-    num = food_num
-
+    
     cur_path = logic.PropSymbolExpr(pacman_str, x, y, t)
-    state = [cur_path, x, y, t, num] 
+    state = [cur_path, x, y, t] 
     states = [state]
     while (len(states) != 0):
         state = states.pop()
         x = state[1]
         y = state[2]
         t = state[3]
-        food_num = state[4]
-        if (x, y, food_num) in visited:
-            continue
+        temp = check_goal(state)
+        print(temp)
+        if (temp!=False):
+            return extractActionSequence(temp, actions)
 
-        visited.append((x, y, food_num))
+        else :
+            # explore east successor
+            if not walls[x+1][y] and check_boundray(x+1, y):
+                cur_path = state[0] & logic.PropSymbolExpr(pacman_str, x+1, y, t+1)&\
+                    (logic.PropSymbolExpr(pacman_str, x+1, y, t+1) %\
+                    (logic.PropSymbolExpr(pacman_str, x, y, t) &\
+                     logic.PropSymbolExpr('East', t)))
+                states.append([cur_path, x+1, y, t+1])
 
-        if (foods[x][y]):
-            food_num -= 1
-            print('food at ',x,y)
-            print(food_num)
-            if (food_num == 0):
-                model = findModel(state[0])
-                print(model)
-                break
+            # explore west successor
+            if not walls[x-1][y] and check_boundray(x-1, y):
+                cur_path = state[0] & logic.PropSymbolExpr(pacman_str, x-1, y, t+1)&\
+                    (logic.PropSymbolExpr(pacman_str, x-1, y, t+1) %\
+                    (logic.PropSymbolExpr(pacman_str, x, y, t) &\
+                     logic.PropSymbolExpr('West', t)))
+                states.append([cur_path, x-1, y, t+1])
 
-        # explore east successor
-        if not walls[x+1][y] and check_boundray(x+1, y):
-            cur_path = state[0] & logic.PropSymbolExpr(pacman_str, x+1, y, t+1)&\
-                (logic.PropSymbolExpr(pacman_str, x+1, y, t+1) %\
-                (logic.PropSymbolExpr(pacman_str, x, y, t) &\
-                    logic.PropSymbolExpr('East', t)))
-            states.append([cur_path, x+1, y, t+1, food_num])
+            # explore north successor
+            if not walls[x][y-1] and check_boundray(x, y+1):
+                cur_path = state[0] & logic.PropSymbolExpr(pacman_str, x, y+1, t+1)&\
+                    (logic.PropSymbolExpr(pacman_str, x, y+1, t+1) %\
+                    (logic.PropSymbolExpr(pacman_str, x, y, t) &\
+                     logic.PropSymbolExpr('North', t)))
+                states.append([cur_path, x, y+1, t+1])
 
-        # explore west successor
-        if not walls[x-1][y] and check_boundray(x-1, y):
-            cur_path = state[0] & logic.PropSymbolExpr(pacman_str, x-1, y, t+1)&\
-                (logic.PropSymbolExpr(pacman_str, x-1, y, t+1) %\
-                (logic.PropSymbolExpr(pacman_str, x, y, t) &\
-                    logic.PropSymbolExpr('West', t)))
-            states.append([cur_path, x-1, y, t+1, food_num])
-
-        # explore north successor
-        if not walls[x][y-1] and check_boundray(x, y+1):
-            cur_path = state[0] & logic.PropSymbolExpr(pacman_str, x, y+1, t+1)&\
-                (logic.PropSymbolExpr(pacman_str, x, y+1, t+1) %\
-                (logic.PropSymbolExpr(pacman_str, x, y, t) &\
-                    logic.PropSymbolExpr('North', t)))
-            states.append([cur_path, x, y+1, t+1, food_num])
-
-        # explore south successor
-        if not walls[x][y-1] and check_boundray(x, y-1):
-            cur_path = state[0] & logic.PropSymbolExpr(pacman_str, x, y-1, t+1)&\
-                (logic.PropSymbolExpr(pacman_str, x, y-1, t+1) %\
-                (logic.PropSymbolExpr(pacman_str, x, y, t) &\
-                    logic.PropSymbolExpr('South', t)))
-            states.append([cur_path, x, y-1, t+1, food_num])
-    print(len(states))
-    print('before return\n********************\n')
-    return extractActionSequence(model, actions)
+            # explore south successor
+            if not walls[x][y-1] and check_boundray(x, y-1):
+                cur_path = state[0] & logic.PropSymbolExpr(pacman_str, x, y-1, t+1)&\
+                    (logic.PropSymbolExpr(pacman_str, x, y-1, t+1) %\
+                    (logic.PropSymbolExpr(pacman_str, x, y, t) &\
+                     logic.PropSymbolExpr('South', t)))
+                states.append([cur_path, x, y-1, t+1])
 
 
 # Abbreviations
