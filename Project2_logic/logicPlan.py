@@ -454,7 +454,7 @@ def foodLogicPlan(problem):
                                     continue
                                 temp2 = logic.PropSymbolExpr(pacman_str, i+1, j+1, time)
                                 clause = ~(temp1 & temp2)
-                                pos_constrain.append(clause)
+                                 pos_constrain.append(clause)
 
         all_food_all_time = []
         for pos in food_position:
