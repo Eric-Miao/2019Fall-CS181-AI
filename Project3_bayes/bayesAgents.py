@@ -149,12 +149,19 @@ def fillYCPT(bayesNet, gameState):
     See the definition of `fillXCPT` above for an example of how to do this.
     You can use the PROB_* constants imported from layout rather than writing
     probabilities down by hand.
-    """
 
-    yFactor = bn.Factor([Y_POS_VAR], [], bayesNet.variableDomainsDict())
+    HINT:
+    Y_POS_VALS = [BOTH_TOP_VAL, BOTH_BOTTOM_VAL, LEFT_TOP_VAL, LEFT_BOTTOM_VAL]
+    """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    yFactor = bn.Factor([Y_POS_VAR], [], bayesNet.variableDomainsDict())
+
+    yFactor.setProbability({Y_POS_VAR: BOTH_TOP_VAL}, PROB_BOTH_TOP)
+    yFactor.setProbability({Y_POS_VAR: BOTH_BOTTOM_VAL}, PROB_BOTH_BOTTOM)
+    yFactor.setProbability({Y_POS_VAR: LEFT_TOP_VAL}, PROB_ONLY_LEFT_TOP)
+    yFactor.setProbability({Y_POS_VAR: LEFT_BOTTOM_VAL}, PROB_ONLY_LEFT_BOTTOM)
     bayesNet.setCPT(Y_POS_VAR, yFactor)
+    "*** MY CODE END ***"
 
 
 def fillHouseCPT(bayesNet, gameState):
@@ -220,9 +227,52 @@ def fillObsCPT(bayesNet, gameState):
     """
 
     bottomLeftPos, topLeftPos, bottomRightPos, topRightPos = gameState.getPossibleHouses()
-
+    HousePos = [topLeftPos, topRightPos, bottomLeftPos, bottomRightPos]
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    def getclosesthouse(pos_list):
+        min_dist = (0, pos_list[0])
+        for (index, pos) in enumerate(pos_list):
+            if (pos < min_dist[1]):
+                min_dist = (index, pos)
+        return min_dist[0]
+
+    def getDist(A, B):
+        return (abs(A[0]-B[0])+abs(A[1]-B[1]))
+
+    def get_adjacent_house_Pos(obsPos):
+        pos = []
+        for housepos in HousePos:
+            pos.append(getDist(housepos, obsPos))
+        return getclosesthouse(pos)
+
+    for pos in gameState.getPossibleHouses():
+        for obsPos in gameState.getHouseWalls(pos):
+
+            close_house = HOUSE_VALS[get_adjacent_house_Pos(obsPos)]
+
+            obsPos = OBS_VAR_TEMPLATE % obsPos
+            obsVarFactor = bn.Factor(
+                [obsPos], HOUSE_VARS, bayesNet.variableDomainsDict())
+            for assignment in obsVarFactor.getAllPossibleAssignmentDicts():
+                food_house_var = assignment[FOOD_HOUSE_VAR]
+                ghost_house_var = assignment[GHOST_HOUSE_VAR]
+                color = assignment[obsPos]
+                prob = 0
+                if close_house == food_house_var:
+                    if color == RED_OBS_VAL:
+                        prob = PROB_FOOD_RED
+                    elif color == BLUE_OBS_VAL:
+                        prob = 1 - PROB_FOOD_RED
+                elif close_house == ghost_house_var:
+                    if color == RED_OBS_VAL:
+                        prob = PROB_GHOST_RED
+                    elif color == BLUE_OBS_VAL:
+                        prob = 1 - PROB_GHOST_RED
+                else:
+                    if color == NO_OBS_VAL:
+                        prob = 1
+                obsVarFactor.setProbability(assignment, prob)
+            bayesNet.setCPT(obsPos, obsVarFactor)
 
 
 def getMostLikelyFoodHousePosition(evidence, bayesNet, eliminationOrder):
