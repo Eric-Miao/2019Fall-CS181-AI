@@ -110,7 +110,6 @@ def joinFactors(factors):
     new_unconditioned = set()
     new_domainDict = {}
 
-    print(type(factors[0].conditionedVariables()))
     for factor in factors:
         new_unconditioned.update(factor.unconditionedVariables())
         new_conditioned.update(factor.conditionedVariables())
@@ -172,8 +171,21 @@ def eliminateWithCallTracking(callTrackingList=None):
                              "unconditionedVariables: " + str(factor.unconditionedVariables()))
 
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        new_unconditioned = []
+        for var in factor.unconditionedVariables():
+            if var != eliminationVariable:
+                new_unconditioned.append(var)
+        new_conditioned = factor.conditionedVariables()
+        new_domainDict = factor.variableDomainsDict()
+        new_factor = Factor(new_unconditioned, new_conditioned, new_domainDict)
 
+        for assignment in new_factor.getAllPossibleAssignmentDicts():
+            prob = 0
+            for possible_val in new_domainDict[eliminationVariable]:
+                assignment[eliminationVariable] = possible_val
+                prob += factor.getProbability(assignment)
+            new_factor.setProbability(assignment, prob)
+        return new_factor
     return eliminate
 
 
