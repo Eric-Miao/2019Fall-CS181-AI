@@ -171,10 +171,11 @@ def eliminateWithCallTracking(callTrackingList=None):
                              "unconditionedVariables: " + str(factor.unconditionedVariables()))
 
         "*** YOUR CODE HERE ***"
-        new_unconditioned = []
-        for var in factor.unconditionedVariables():
-            if var != eliminationVariable:
-                new_unconditioned.append(var)
+        new_unconditioned = factor.unconditionedVariables()
+        sub_set = set()
+        sub_set.add(eliminationVariable)
+        new_unconditioned = new_unconditioned - sub_set
+
         new_conditioned = factor.conditionedVariables()
         new_domainDict = factor.variableDomainsDict()
         new_factor = Factor(new_unconditioned, new_conditioned, new_domainDict)
@@ -244,16 +245,14 @@ def normalize(factor):
     new_conditioned = factor.conditionedVariables()
     new_doamin = factor.variableDomainsDict()
 
-    temp_var = new_unconditioned[-1]
-    new_unconditioned = new_unconditioned.remove(temp_var)
-    new_conditioned.add(temp_var)
+    temp_set = set()
+    for var in new_unconditioned:
+        if (len(new_doamin[var]) == 1):
+            temp_set.add(var)
+    new_conditioned = new_conditioned | temp_set
+    new_unconditioned = new_unconditioned - temp_set
 
     new_factor = Factor(new_unconditioned, new_conditioned, new_doamin)
-
-    if (len(new_conditioned) == 1 and len(new_unconditioned) == 0):
-        for assignment in factor.getAllPossibleAssignmentDicts():
-            new_factor.setProbability(assignment, 1)
-        return new_factor
 
     prob = 0
     for assignment in factor.getAllPossibleAssignmentDicts():
