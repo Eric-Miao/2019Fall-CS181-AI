@@ -76,7 +76,7 @@ def constructBayesNet(gameState):
     - a large number of "observation" variables for each cell Pacman can measure
 
     You *must* name all position and house variables using the constants
-    (X_POS_VAR, FOOD_HOUSE_VAR, etc.) at the top of this file. 
+    (X_POS_VAR, FOOD_HOUSE_VAR, etc.) at the top of this file.
 
     The full set of observation variables can be obtained as follows:
 
@@ -288,7 +288,17 @@ def getMostLikelyFoodHousePosition(evidence, bayesNet, eliminationOrder):
     (This should be a very short method.)
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    houseMarginals = inference.inferenceByVariableElimination(bayesNet,
+                                                              FOOD_HOUSE_VAR, evidence, eliminationOrder)
+    best_assignment = None
+    max_prob = 0
+    for assignment in houseMarginals.getAllPossibleAssignmentDicts():
+        cur_prob = houseMarginals.getProbability(assignment)
+        if (cur_prob > max_prob):
+            max_prob = cur_prob
+            best_assignment = assignment
+
+    return best_assignment
 
 
 class BayesAgent(game.Agent):
