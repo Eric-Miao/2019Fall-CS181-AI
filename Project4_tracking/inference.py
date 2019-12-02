@@ -310,7 +310,7 @@ class ExactInference(InferenceModule):
         for ghostPosition in self.allPositions:
           prob = self.getObservationProb(observation, pacmanPosition, ghostPosition, jailPosition)
           self.beliefs[ghostPosition] *= prob
-          
+
         self.beliefs.normalize()
 
     def elapseTime(self, gameState):
@@ -321,8 +321,19 @@ class ExactInference(InferenceModule):
         The transition model is not entirely stationary: it may depend on
         Pacman's current position. However, this is not a problem, as Pacman's
         current position is known.
+
+        for each postion on board, get the distribution of next step. 
+        for each postion on board add all the possibilities from old pos to it
+        the possibility from old to new is the possibility of old times the possibility to new,
         """
-        "*** YOUR CODE HERE ***"
+        newBeliefDist = DiscreteDistribution()
+        for oldPos in self.allPositions:
+          temp = self.getPositionDistribution(gameState, oldPos)
+          for pos, prob in temp.items():
+            newBeliefDist[pos] += self.beliefs[oldPos] * prob
+
+        self.beliefs = newBeliefDist
+
 
     def getBeliefDistribution(self):
         return self.beliefs
