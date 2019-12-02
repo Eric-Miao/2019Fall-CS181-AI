@@ -185,7 +185,18 @@ class InferenceModule:
         Return the probability P(noisyDistance | pacmanPosition, ghostPosition).
         """
         "*** YOUR CODE HERE ***"
-
+        trueDistance = manhattanDistance(pacmanPosition, ghostPosition)
+    
+        if noisyDistance != None:
+          if ghostPosition == jailPosition:
+            return 0
+        elif noisyDistance == None:
+          if ghostPosition == jailPosition:
+            return 1
+          else:
+            return 0
+  
+        return busters.getObservationProbability(noisyDistance, trueDistance)
     def setGhostPosition(self, gameState, ghostPosition, index):
         """
         Set the position of the ghost for this inference module to the specified
@@ -292,6 +303,14 @@ class ExactInference(InferenceModule):
         position is known.
         """
         "*** YOUR CODE HERE ***"
+        self.beliefs.normalize()
+        pacmanPosition = gameState.getPacmanPosition()
+        jailPosition = self.getJailPosition
+        
+        for ghostPosition in self.allPositions:
+          prob = self.getObservationProb(observation, pacmanPosition, ghostPosition, jailPosition)
+          self.beliefs[ghostPosition] *= prob
+          
         self.beliefs.normalize()
 
     def elapseTime(self, gameState):
