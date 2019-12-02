@@ -144,19 +144,21 @@ class GreedyBustersAgent(BustersAgent):
         "*** YOUR CODE HERE ***"
         min_action_dist = None
         min_ghost_dist = None
-        # self.inferenceModules.elapseTime(gameState)
+
+        """ Get closest ghsot """
+        for belief in livingGhostPositionDistributions:
+          distance = self.distancer.getDistance(pacmanPosition, belief.argMax())
+          if not min_ghost_dist or distance < min_ghost_dist:
+            min_ghost_dist = distance
+            closest_ghost_pos = belief.argMax()
+
+        """ Get most likely ghost """
         closestGhosts = inference.DiscreteDistribution()
-
-        # for belief in livingGhostPositionDistributions:
-        #   distance = self.distancer.getDistance(pacmanPosition, belief.argMax())
-        #   if not min_ghost_dist or distance < min_ghost_dist:
-        #     min_ghost_dist = distance
-        #     closest_ghost_pos = belief.argMax()
-
         for belief in livingGhostPositionDistributions:
           closestGhosts[belief.argMax()] = belief[belief.argMax()]
         most_likely_ghost_pos = closestGhosts.argMax()
 
+        """ Use the selected ghost to choose the action to take """
         for action in legal:
           successorPosition = Actions.getSuccessor(pacmanPosition, action)
           distance = self.distancer.getDistance(successorPosition, most_likely_ghost_pos)
