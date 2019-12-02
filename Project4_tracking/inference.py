@@ -75,6 +75,13 @@ class DiscreteDistribution(dict):
         {}
         """
         "*** YOUR CODE HERE ***"
+        sum = self.total()
+        if(sum == 0):
+          return
+        
+        for key in self.keys():
+          self[key] = self[key]/sum
+        return
 
     def sample(self):
         """
@@ -98,8 +105,19 @@ class DiscreteDistribution(dict):
         0.0
         """
         "*** YOUR CODE HERE ***"
-
-
+        sample_prob = random.random()
+        temp = self.copy()
+        temp.normalize()
+        prev_prob = 0.0
+        post_prob = 0.0
+        for index, prob in temp.items():
+          post_prob = prev_prob + prob
+          if sample_prob > prev_prob and sample_prob <= post_prob:
+            sample = index
+            break
+          prev_prob = post_prob
+        
+        return sample
 class InferenceModule:
     """
     An inference module tracks a belief distribution over a ghost's location.
