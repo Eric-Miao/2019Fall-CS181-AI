@@ -110,6 +110,7 @@ class DiscreteDistribution(dict):
         temp.normalize()
         prev_prob = 0.0
         post_prob = 0.0
+        sample = None
         for index, prob in temp.items():
           post_prob = prev_prob + prob
           if sample_prob > prev_prob and sample_prob <= post_prob:
@@ -380,6 +381,26 @@ class ParticleFilter(InferenceModule):
         the DiscreteDistribution may be useful.
         """
         "*** YOUR CODE HERE ***"
+        newBelief = DiscreteDistribution()
+        new_par = []
+
+        pacmanPosition = gameState.getPacmanPosition()
+        jailPosition = self.getJailPosition()
+
+        if (len(self.particles) == 0):
+          self.initializeUniformly(gameState)
+          return
+
+        for par in self.particles:
+          newBelief[par] += self.getObservationProb(observation, pacmanPosition, par, jailPosition)
+        newBelief.normalize()
+        
+        for par in self.particles:
+          new_par.append(newBelief.sample())
+
+        self.particles = new_par
+        self.beliefs = newBelief
+        
 
     def elapseTime(self, gameState):
         """
@@ -402,8 +423,9 @@ class ParticleFilter(InferenceModule):
           else:
             belief[par] = 1
         belief.normalize()
-        return belief    
-
+        # self.beliefs = belief
+        # return  self.beliefs    
+        return belief
 
 class JointParticleFilter(ParticleFilter):
     """
