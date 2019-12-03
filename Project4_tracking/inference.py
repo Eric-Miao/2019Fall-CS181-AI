@@ -387,20 +387,30 @@ class ParticleFilter(InferenceModule):
         pacmanPosition = gameState.getPacmanPosition()
         jailPosition = self.getJailPosition()
 
-        if (len(self.particles) == 0):
-          self.initializeUniformly(gameState)
-          return
-
         for par in self.particles:
           newBelief[par] += self.getObservationProb(observation, pacmanPosition, par, jailPosition)
         newBelief.normalize()
         
-        for par in self.particles:
-          new_par.append(newBelief.sample())
-
-        self.particles = new_par
+        if newBelief.total() == 0:
+          self.initializeUniformly(gameState)
+        else:          
+          for par in self.particles:
+            new_par.append(newBelief.sample())
+            self.particles = new_par
         self.beliefs = newBelief
-        
+
+        # updatedBeliefs = DiscreteDistribution()
+        # pacman, jail = gameState.getPacmanPosition(), self.getJailPosition()
+        # for particle in self.particles:
+        #     updatedBeliefs[particle] += self.getObservationProb(observation, pacman, particle, jail)
+        # self.beliefs = updatedBeliefs
+        # self.beliefs.normalize()
+        # if all([prob == 0 for prob in updatedBeliefs.values()]):
+        #     self.initializeUniformly(gameState)
+        # else:
+        #     self.particles = [self.beliefs.sample() for i in self.particles]
+        #raiseNotDefined()
+
 
     def elapseTime(self, gameState):
         """
