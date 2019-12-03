@@ -339,8 +339,8 @@ class ExactInference(InferenceModule):
         """
         newBeliefDist = DiscreteDistribution()
         for oldPos in self.allPositions:
-            temp = self.getPositionDistribution(gameState, oldPos)
-            for pos, prob in temp.items():
+            temp_dist = self.getPositionDistribution(gameState, oldPos)
+            for pos, prob in temp_dist.items():
                 newBeliefDist[pos] += self.beliefs[oldPos] * prob
 
         self.beliefs = newBeliefDist.copy()
@@ -427,15 +427,16 @@ class ParticleFilter(InferenceModule):
         gameState.
         """
         "*** YOUR CODE HERE ***"
+        # print('test7\n')
         newBelief = DiscreteDistribution()
         new_par = []
 
         for oldPos in self.particles:
-            temp = self.getPositionDistribution(gameState, oldPos)
-            for pos, prob in temp.items():
+            temp_dist = self.getPositionDistribution(gameState, oldPos)
+            for pos, prob in temp_dist.items():
                 newBelief[pos] += prob
-
-        for par in self.particles:
+        newBelief.normalize()
+        for oldPos in self.particles:
             new_par.append(newBelief.sample())
         self.particles = new_par
 
@@ -560,10 +561,13 @@ class JointParticleFilter(ParticleFilter):
         newParticles = []
         for oldParticle in self.particles:
             newParticle = list(oldParticle)  # A list of ghost positions
-
+            # newBelief = DiscreteDistribution()
             # now loop through and update each entry in newParticle...
-            "*** YOUR CODE HERE ***"
-
+            """"*** YOUR CODE HERE ***"""
+            for i in range(self.numGhosts):
+                temp_dist = self.getPositionDistribution(
+                    gameState, newParticle, i, self.ghostAgents[i])
+                newParticle[i] = temp_dist.sample()
             """*** END YOUR CODE HERE ***"""
             newParticles.append(tuple(newParticle))
         self.particles = newParticles
