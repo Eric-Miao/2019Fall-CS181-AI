@@ -304,7 +304,6 @@ class ExactInference(InferenceModule):
         position is known.
         """
         "*** YOUR CODE HERE ***"
-        self.beliefs.normalize()
         pacmanPosition = gameState.getPacmanPosition()
         jailPosition = self.getJailPosition
         
@@ -333,7 +332,7 @@ class ExactInference(InferenceModule):
           for pos, prob in temp.items():
             newBeliefDist[pos] += self.beliefs[oldPos] * prob
 
-        self.beliefs = newBeliefDist
+        self.beliefs = newBeliefDist.copy()
         self.beliefs.normalize()
 
     def getBeliefDistribution(self):
@@ -361,12 +360,16 @@ class ParticleFilter(InferenceModule):
         """
         self.particles = []
         "*** YOUR CODE HERE ***"
+        self.beliefs = DiscreteDistribution()
         Pos = self.legalPositions
         NumPar = self.numParticles
         par_per_pos = NumPar/len(Pos)
         for pos in Pos:
+          self.beliefs[p] = 1.0
           for i in range(int(par_per_pos)):
             self.particles.append(pos)
+
+        self.beliefs.normalize()  
 
     def observeUpdate(self, observation, gameState):
         """
@@ -444,8 +447,6 @@ class ParticleFilter(InferenceModule):
           else:
             belief[par] = 1
         belief.normalize()
-        # self.beliefs = belief
-        # return  self.beliefs    
         return belief
 
 class JointParticleFilter(ParticleFilter):
@@ -473,7 +474,24 @@ class JointParticleFilter(ParticleFilter):
         """
         self.particles = []
         "*** YOUR CODE HERE ***"
+        import itertools
+        legalPos = self.legalPositions
+        NumPar = self.numParticles
+        self.beliefs = DiscreteDistribution()
+        allghostPosition = DiscreteDistribution()
+        allghostPosition = list(itertools.product(legalPos, repeat = self.numGhosts))
+        random.shuffle(allghostPosition)
 
+        assert len(allghostPosition) <= NumPar
+        par_per_state = int(NumPar/len(allghostPosition))
+
+        for pos in allghostPosition:
+          for i in range(par_per_state):
+            self.particles.append(pos)
+          self.beliefs[pos] = 1.0
+        
+        self.beliefs.normalize()
+          
     def addGhostAgent(self, agent):
         """
         Each ghost agent is registered separately and stored (in case they are
