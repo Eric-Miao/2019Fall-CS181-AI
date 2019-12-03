@@ -315,7 +315,7 @@ class ExactInference(InferenceModule):
         """
         "*** YOUR CODE HERE ***"
         pacmanPosition = gameState.getPacmanPosition()
-        jailPosition = self.getJailPosition
+        jailPosition = self.getJailPosition()
 
         for ghostPosition in self.allPositions:
             prob = self.getObservationProb(
@@ -340,10 +340,11 @@ class ExactInference(InferenceModule):
         newBeliefDist = DiscreteDistribution()
         for oldPos in self.allPositions:
             temp_dist = self.getPositionDistribution(gameState, oldPos)
-            for pos, prob in temp_dist.items():
-                newBeliefDist[pos] += self.beliefs[oldPos] * prob
+            for newPos in temp_dist.keys():
+                newBeliefDist[newPos] += self.beliefs[oldPos] * \
+                    temp_dist[newPos]
 
-        self.beliefs = newBeliefDist.copy()
+        self.beliefs = newBeliefDist
         self.beliefs.normalize()
 
     def getBeliefDistribution(self):
@@ -428,16 +429,21 @@ class ParticleFilter(InferenceModule):
         """
         "*** YOUR CODE HERE ***"
         # print('test7\n')
-        newBelief = DiscreteDistribution()
+        # newBelief = DiscreteDistribution()
         new_par = []
+
+        # for oldPos in self.particles:
+        #     temp_dist = self.getPositionDistribution(gameState, oldPos)
+        #     for pos, prob in temp_dist.items():
+        #         newBelief[pos] += prob
+        # newBelief.normalize()
+        # for oldPos in self.particles:
+        #     new_par.append(newBelief.sample())
+        # self.particles = new_par
 
         for oldPos in self.particles:
             temp_dist = self.getPositionDistribution(gameState, oldPos)
-            for pos, prob in temp_dist.items():
-                newBelief[pos] += prob
-        newBelief.normalize()
-        for oldPos in self.particles:
-            new_par.append(newBelief.sample())
+            new_par.append(temp_dist.sample())
         self.particles = new_par
 
     def getBeliefDistribution(self):
