@@ -471,6 +471,13 @@ class JointParticleFilter(ParticleFilter):
         Initialize particles to be consistent with a uniform prior. Particles
         should be evenly distributed across positions in order to ensure a
         uniform prior.
+
+        """ 
+        
+        """
+        from now on, the self.particles and self.beliefs store not one single 
+        position pertime but rather a position combination returned by the product
+        so there are no more single position but a tuple of self.ghostnums of position.
         """
         self.particles = []
         "*** YOUR CODE HERE ***"
@@ -523,6 +530,26 @@ class JointParticleFilter(ParticleFilter):
         the DiscreteDistribution may be useful.
         """
         "*** YOUR CODE HERE ***"
+        newBelief = DiscreteDistribution()
+        new_par = []
+
+        pacmanPosition = gameState.getPacmanPosition()
+
+        for par in self.particles:
+          new_prob = 1.0
+          for i in range(self.numGhosts):
+            new_prob *= self.getObservationProb(observation[i], pacmanPosition, par[i], self.getJailPosition(i))
+          newBelief[par] += new_prob
+        newBelief.normalize()
+        
+        if newBelief.total() == 0:
+          self.initializeUniformly(gameState)
+        else:          
+          for par in self.particles:
+            new_par.append(newBelief.sample())
+          self.particles = new_par
+
+        self.beliefs = newBelief
 
     def elapseTime(self, gameState):
         """
