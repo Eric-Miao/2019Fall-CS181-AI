@@ -489,7 +489,7 @@ class JointParticleFilter(ParticleFilter):
         """
         self.particles = []
         "*** YOUR CODE HERE ***"
-        print('test8\n')
+        # print('test8\n')
         import itertools
         Pos = self.legalPositions
         NumPar = self.numParticles
@@ -551,8 +551,6 @@ class JointParticleFilter(ParticleFilter):
             for par in self.particles:
                 new_par.append(newBelief.sample())
             self.particles = new_par
-
-        self.beliefs = newBelief
 
     def elapseTime(self, gameState):
         """
