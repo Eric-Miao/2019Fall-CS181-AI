@@ -207,3 +207,86 @@ class PrioritizedSweepingValueIterationAgent(AsynchronousValueIterationAgent):
 
     def runValueIteration(self):
         "*** YOUR CODE HERE ***"
+        """ 
+        Compute predecessors of all states.        
+        """
+        predecessors = {}
+        for state in self.mdp.getStates():
+            if (self.mdp.isTerminal(state)):
+                continue
+            for action in self.mdp.getPossibleActions(state):
+                for (nextState, prob) in self.mdp.getTransitionStatesAndProbs(state, action):
+                    if nextState in predecessors:
+                        predecessors[nextState].add(state)
+                    else:
+                        predecessors[nextState] = {state}
+
+        """  
+        Initialize an empty priority queue.
+        """
+        PriorityQueue = util.PriorityQueue()
+
+        """  
+        For each non-terminal state s, do:
+        Find the absolute value of the difference between the current value of s in self.values 
+        and the highest Q-value across all possible actions from s (this represents what the value should be); 
+        call this number diff. Do NOT update self.values[s] in this step.
+        Push s into the priority queue with priority -diff (note that this is negative). 
+        We use a negative because the priority queue is a min heap, but we want to prioritize updating states that have a higher error.
+        """
+        for state in self.mdp.getStates():
+            if (self.mdp.isTerminal(state)):
+                continue
+            qtemp = util.Counter()
+            cur_value = self.values[state]
+            for action in self.mdp.getPossibleActions(state):
+                qtemp[action] = self.getQValue(state, action)
+            qargMax = qtemp.argMax()
+            priority = -abs(cur_value - qtemp[qargMax])
+            PriorityQueue.update(state, priority)
+            
+        """           
+        For iteration in 0, 1, 2, ..., self.iterations - 1, do:
+
+            If the priority queue is empty, then terminate.
+            Pop a state s off the priority queue.
+            Update s's value (if it is not a terminal state) in self.values.
+
+            For each predecessor p of s, do:
+                Find the absolute value of the difference between the current value 
+            of p in self.values and the highest Q-value across all possible 
+            actions from p (this represents what the value should be); 
+            call this number diff. Do NOT update self.values[p] in this step.
+        
+                If diff > theta, push p into the priority queue with priority -diff 
+            (note that this is negative), as long as it does not already exist 
+            in the priority queue with equal or lower priority. As before, we use 
+            a negative because the priority queue is a min heap, but we want to 
+            prioritize updating states that have a higher error.
+        """
+        cnt = 0
+        while (cnt < self.iterations and not PriorityQueue.isEmpty()):
+            state = PriorityQueue.pop()
+            if (self.mdp.isTerminal(state)):
+                continue
+            qtemp_one = util.Counter()
+            for action in self.mdp.getPossibleActions(state):
+                qtemp_one[action] = self.getQValue(state, action)
+            qargMax = qtemp_one.argMax()
+            self.values[state] = qtemp_one[qargMax]
+            
+            for predecessor in predecessors[state]:
+                if (self.mdp.isTerminal(predecessor)):
+                    continue
+                qtemp_two = util.Counter()
+                print(predecessor)
+                for action in self.mdp.getPossibleActions(predecessor):
+                    qtemp_two[action] = self.getQValue(predecessor, action)
+                qargMax = qtemp_two.argMax()
+                diff = abs(qtemp_two[qargMax] - self.values[predecessor])
+
+                if (diff > self.theta):
+                    """ Inside the PQ.update() the condition judgements have already been done."""
+                    PriorityQueue.update(predecessor, -diff)
+            cnt += 1
+
