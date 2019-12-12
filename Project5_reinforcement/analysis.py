@@ -18,6 +18,12 @@
 
 # Set the given parameters to obtain the specified policies through
 # value iteration.
+""" 
+NOTE:
+Discount: how fast u want to reach the goal
+Noise: determines whether u want to avoid the risk, negative states
+LivingCost: how fast u want to end the game, no matter die or win 
+"""
 
 def question2():
     answerDiscount = 0.9
