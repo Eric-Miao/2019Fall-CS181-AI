@@ -279,7 +279,6 @@ class PrioritizedSweepingValueIterationAgent(AsynchronousValueIterationAgent):
                 if (self.mdp.isTerminal(predecessor)):
                     continue
                 qtemp_two = util.Counter()
-                print(predecessor)
                 for action in self.mdp.getPossibleActions(predecessor):
                     qtemp_two[action] = self.getQValue(predecessor, action)
                 qargMax = qtemp_two.argMax()
