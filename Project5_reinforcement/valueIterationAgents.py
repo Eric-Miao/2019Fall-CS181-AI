@@ -65,20 +65,34 @@ class ValueIterationAgent(ValueEstimationAgent):
     def runValueIteration(self):
         # Write value iteration code here
         "*** YOUR CODE HERE ***"
+        """ 
+        loop through iteration times. each time 
+        compute the value of all state based on prev-loop
+        update the self.values after each loop.
+        Inside each loop, get the q value of all possible actions
+        and obtain the argMax of the q values of a certain state
+        and take it as the new value of this state.
+
+        NOTE: HERE, must update the states per big loop, that is 
+        cannot update self.values as u go, must use a new util.Counter
+        to take down the certain loop and then copy the new counter to 
+        the old one to overwrite. 
+        This is because in side the big loop, obtaining the correct q 
+        value depends on the right self.values, which shall not be change 
+        when updates are performing on all states as they depend on each
+        other and should always maintain the original version, only modified
+        after update is done once.   
+        """
         cnt = self.iterations
-        print(self.iterations)
         while(cnt > 0):
-            print('before, ', self.values)
+            tempvalue = util.Counter()
             for state in self.mdp.getStates():
-                print('\n\n\n\nstate: ', state)
                 qValue = util.Counter()
                 for action in self.mdp.getPossibleActions(state):
                     qValue[action] = self.getQValue(state, action)
-                    print('qvalue, action: ', qValue[action], action)
                 qargMax = qValue.argMax()
-                print('qargMax, ', qargMax)
-                self.values[state] = qValue[qargMax]
-            print('after, ', self.values)
+                tempvalue[state] = qValue[qargMax]
+            self.values = tempvalue
             cnt -= 1
 
     def getValue(self, state):
@@ -98,10 +112,6 @@ class ValueIterationAgent(ValueEstimationAgent):
             qtemp[action] += prob * \
                 (self.mdp.getReward(state, action, nextState) +
                  self.discount*self.getValue(nextState))
-
-            print(qtemp[action], action, nextState, prob)
-        print('*******************\n', qtemp,
-              qtemp.totalCount(), '\n*******************\n')
         return qtemp.totalCount()
 
     def computeActionFromValues(self, state):
