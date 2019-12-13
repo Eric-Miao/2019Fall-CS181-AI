@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -16,7 +16,10 @@ from game import *
 from learningAgents import ReinforcementAgent
 from featureExtractors import *
 
-import random,util,math
+import random
+import util
+import math
+
 
 class QLearningAgent(ReinforcementAgent):
     """
@@ -38,12 +41,14 @@ class QLearningAgent(ReinforcementAgent):
         - self.getLegalActions(state)
           which returns legal actions for a state
     """
+
     def __init__(self, **args):
         "You can initialize Q-values here..."
         ReinforcementAgent.__init__(self, **args)
 
         "*** YOUR CODE HERE ***"
         self.Qvalue = util.Counter()
+
     def getQValue(self, state, action):
         """
           Returns Q(state,action)
@@ -108,12 +113,12 @@ class QLearningAgent(ReinforcementAgent):
 
         if len(legalActions) == 0:
             return None
-        
+
         if util.flipCoin(self.epsilon):
             action = random.choice(legalActions)
         else:
             action = self.getPolicy(state)
-      
+
         return action
 
     def update(self, state, action, nextState, reward):
@@ -126,10 +131,11 @@ class QLearningAgent(ReinforcementAgent):
           it will be called on your behalf
         """
         "*** YOUR CODE HERE ***"
-        print(state, ' => ', action, nextState, ' with a value of: ',self.getValue(nextState), ' Reward: ', reward)
-        print('Qvalue before update: ',self.Qvalue)
+        # print(state, ' => ', action, nextState, ' with a value of: ',self.getValue(nextState), ' Reward: ', reward)
+        # print('Qvalue before update: ',self.Qvalue)
         sample = reward + self.discount * self.getValue(nextState)
-        new_q = (1 - self.alpha) * self.getQValue(state, action) + self.alpha * sample
+        new_q = (1 - self.alpha) * self.getQValue(state,
+                                                  action) + self.alpha * sample
 
         self.Qvalue[(state, action)] = new_q
         # print('Qvalue after update: ', self.Qvalue, '\n')
@@ -144,7 +150,7 @@ class QLearningAgent(ReinforcementAgent):
 class PacmanQAgent(QLearningAgent):
     "Exactly the same as QLearningAgent, but with different default parameters"
 
-    def __init__(self, epsilon=0.05,gamma=0.8,alpha=0.2, numTraining=0, **args):
+    def __init__(self, epsilon=0.05, gamma=0.8, alpha=0.2, numTraining=0, **args):
         """
         These default parameters can be changed from the pacman.py command line.
         For example, to change the exploration rate, try:
@@ -168,8 +174,8 @@ class PacmanQAgent(QLearningAgent):
         informs parent of action for Pacman.  Do not change or remove this
         method.
         """
-        action = QLearningAgent.getAction(self,state)
-        self.doAction(state,action)
+        action = QLearningAgent.getAction(self, state)
+        self.doAction(state, action)
         return action
 
 
@@ -181,6 +187,7 @@ class ApproximateQAgent(PacmanQAgent):
        and update.  All other QLearningAgent functions
        should work as is.
     """
+
     def __init__(self, extractor='IdentityExtractor', **args):
         self.featExtractor = util.lookup(extractor, globals())()
         PacmanQAgent.__init__(self, **args)
